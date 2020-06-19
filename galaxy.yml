@@ -1,0 +1,16 @@
+namespace: f5devcentral
+name: cloudservices
+version: 1.0.0
+readme: README.md
+authors:
+  - Alex Shemyakin
+description: Collection to manage F5 CS objects
+license: GPL-3.0-only
+tags:
+  - f5
+  - cloud
+dependencies: {}
+repository: https://bitbucket.org/yoctopeople/ansible-galaxy
+documentation: https://bitbucket.org/yoctopeople/ansible-galaxy
+homepage: https://bitbucket.org/yoctopeople/ansible-galaxy
+issues: https://bitbucket.org/yoctopeople/ansible-galaxy
