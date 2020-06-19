@@ -13,6 +13,7 @@ The F5 Modules for Ansible are freely provided to the open source community for 
 Installing the Build
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. code:: shell
+
     # CASE 1
     # To install build from the repository
     git clone git@bitbucket.org:yoctopeople/ansible-galaxy.git
