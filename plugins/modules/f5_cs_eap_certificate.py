@@ -46,9 +46,9 @@ author:
 '''
 
 
-# TODO Add examples
 EXAMPLES = '''
-
+description: 
+    - The examples can be found in /examples/f5_cs_eap_certificate.yml
 '''
 
 RETURN = r'''
@@ -91,7 +91,7 @@ except ImportError:
 
 class Parameters(AnsibleF5Parameters):
     updatables = [
-        'subscription_id', 'ip_enforcement', 'configuration'
+        'subscription_id', 'account_id', 'configuration'
     ]
 
     returnables = [
@@ -116,7 +116,7 @@ class ApiParameters(Parameters):
 
     @property
     def service_instance_name(self):
-        return self._values['account_id']
+        return self._values['service_instance_name']
 
 
 class ModuleParameters(Parameters):
@@ -212,6 +212,14 @@ class Difference(object):
     def configuration(self):
         return self.have.configuration
 
+    @property
+    def subscription_id(self):
+        return self.have.subscription_id
+
+    @property
+    def account_id(self):
+        return self.have.account_id
+
 
 class ModuleManager(object):
     def __init__(self, *args, **kwargs):
@@ -242,10 +250,9 @@ class ModuleManager(object):
         return False
 
     def exec_module(self):
-        changed = False
         result = dict()
 
-        self.update_current()
+        changed = self.update_current()
 
         reportable = ReportableChanges(params=self.changes.to_return())
         changes = reportable.to_return()
@@ -261,12 +268,6 @@ class ModuleManager(object):
                 msg=warning['msg'],
                 version=warning['version']
             )
-
-    def get_account_id(self):
-        if self.want.account_id:
-            return self.want.account_id
-        current_user = self.client.get_current_user()
-        return current_user['primary_account_id']
 
     def update_current(self):
         self.read_from_cloud()
@@ -299,9 +300,8 @@ class ModuleManager(object):
         return True
 
     def upload_certificate(self):
-        account_id = self.get_account_id()
         certificate_payload = dict(
-            account_id=account_id,
+            account_id=self.have.account_id,
             certificate=self.want.certificate,
             private_key=self.want.private_key,
             passphrase=self.want.passphrase,
@@ -332,7 +332,7 @@ class ArgumentSpec(object):
             private_key=dict(required=True, no_log=True),
             passphrase=dict(required=False, no_log=True, default=''),
             certificate_chain=dict(required=False, no_log=True, default=''),
-            https_port=dict(required=False,type='int', default=443),
+            https_port=dict(required=False, type='int', default=443),
             https_redirect=dict(required=False, type='bool', default=True),
             update_comment=dict(required=False, default='Update EAP certificate'),
         )

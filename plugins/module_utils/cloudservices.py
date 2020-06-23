@@ -273,8 +273,8 @@ class HttpRestApi():
         else:
             raise AnsibleConnectionFailure('Payload is empty.')
 
-    def retire_subscription(self, subscription_id):
-        response = self.send_request(RETIRE_SUBSCRIPTION_URL.format(subscription_id), method='POST', headers=BASE_HEADERS)
+    def retire_subscription(self, payload, subscription_id):
+        response = self.send_request(RETIRE_SUBSCRIPTION_URL.format(subscription_id), method='POST', headers=BASE_HEADERS, data=payload)
         return response['contents']
 
     def activate_subscription(self, subscription_id):

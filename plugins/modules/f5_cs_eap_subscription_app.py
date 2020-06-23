@@ -61,9 +61,9 @@ author:
   - Alex Shemyakin
 '''
 
-# TODO Add examples
 EXAMPLES = '''
-
+description: 
+    - The examples can be found in /examples/f5_cs_eap_subscription_app.yml
 '''
 
 RETURN = r'''
@@ -107,11 +107,11 @@ except ImportError:
 
 class Parameters(AnsibleF5Parameters):
     updatables = [
-        'configuration', 'account_id', 'catalog_id', 'subscription_id', 'service_instance_name'
+        'configuration', 'account_id', 'catalog_id', 'subscription_id', 'service_instance_name', 'status'
     ]
 
     returnables = [
-        'configuration', 'account_id', 'catalog_id', 'subscription_id', 'service_instance_name'
+        'configuration', 'account_id', 'catalog_id', 'subscription_id', 'service_instance_name', 'status'
     ]
 
     @property
@@ -128,6 +128,9 @@ class ApiParameters(Parameters):
             return None
         return self._values['configuration']
 
+    @property
+    def status(self):
+        return self._values['status']
 
 class ModuleParameters(Parameters):
     @property
@@ -151,6 +154,7 @@ class ModuleParameters(Parameters):
     @property
     def activate(self):
         return self._values['activate']
+
 
 class Changes(Parameters):
     def to_return(self):
@@ -220,6 +224,10 @@ class Difference(object):
         return self.have.catalog_id
 
     @property
+    def status(self):
+        return self.have.status
+
+    @property
     def service_instance_name(self):
         return self.have.service_instance_name
 
@@ -281,7 +289,7 @@ class ModuleManager(object):
         elif state == 'fetch':
             self.read_from_cloud(subscription_id=self.want.subscription_id)
         elif state == 'absent':
-            self.remove_from_cloud(subscription_id=self.want.subscription_id)
+            changed = self.retire()
 
         reportable = ReportableChanges(params=self.changes.to_return())
         changes = reportable.to_return()
@@ -297,6 +305,14 @@ class ModuleManager(object):
                 msg=warning['msg'],
                 version=warning['version']
             )
+
+    def retire(self):
+        payload = {
+            'subscription_id': self.want.subscription_id,
+            'omit_config': True
+        }
+        self.remove_from_cloud(payload, subscription_id=self.want.subscription_id)
+        return True
 
     def present(self):
         if self.exists():
@@ -332,7 +348,7 @@ class ModuleManager(object):
             'configuration': {
                 'waf_service': {
                     'application': {
-                        'description': '',
+                        'description': self.want.service_instance_name,
                         'fqdn': self.want.service_instance_name,
                         'http': {
                             'enabled': True,
@@ -438,14 +454,8 @@ class ModuleManager(object):
         if state['status'] != 'ACTIVE':
             raise F5ModuleError('cannot activate subscription: ' + state.status)
 
-        self.read_from_cloud(subscription_id=self.have.subscription_id)
-
     def update_current(self):
         self.read_from_cloud(subscription_id=self.want.subscription_id)
-
-        self.changes.configuration['update_comment'] = self.want.update_comment
-        if self.changes.configuration.get('details'):
-            del self.changes.configuration['details']
 
         payload = {
             'account_id': self.have.account_id,
@@ -454,6 +464,15 @@ class ModuleManager(object):
             'service_type': 'waf',
             'configuration': self.changes.configuration,
         }
+
+        if self.want.configuration and self.want.patch is False:
+            payload['configuration'] = self.want.configuration
+        else:
+            if self.changes.configuration.get('details'):
+                del self.changes.configuration['details']
+            payload['configuration'] = self.changes.configuration
+
+        payload['configuration']['update_comment'] = self.want.update_comment
 
         self.update_on_cloud(payload, subscription_id=self.want.subscription_id)
         return True
@@ -471,8 +490,10 @@ class ModuleManager(object):
         self.have = ApiParameters(params=self.client.create_subscription(payload))
         self._update_changed_options()
 
-    def remove_from_cloud(self, subscription_id):
-        self.client.retire_subscription(subscription_id)
+    def remove_from_cloud(self, payload, subscription_id):
+        response = self.client.retire_subscription(payload, subscription_id)
+        self.have = ApiParameters(params=response)
+        self._update_changed_options()
 
 
 class ArgumentSpec(object):
@@ -490,6 +511,7 @@ class ArgumentSpec(object):
             ),
             update_comment=dict(default='update EAP application'),
             patch=dict(
+                default=False,
                 type='bool',
             ),
             activate=dict(

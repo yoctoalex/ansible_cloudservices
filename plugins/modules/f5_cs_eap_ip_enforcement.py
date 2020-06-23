@@ -52,9 +52,9 @@ author:
   - Alex Shemyakin
 '''
 
-# TODO Add examples
 EXAMPLES = '''
-
+description: 
+    - The examples can be found in /examples/f5_cs_eap_ip_enforcement.yml
 '''
 
 RETURN = r'''
@@ -122,7 +122,7 @@ class ApiParameters(Parameters):
 
     @property
     def catalog_id(self):
-        return self._values['account_id']
+        return self._values['catalog_id']
 
     @property
     def service_instance_name(self):
@@ -203,7 +203,7 @@ class Difference(object):
         if self.want.action == 'update':
             ip_list = list({ip['address']: ip for ip in w_ips}.values())
         elif self.want.action == 'append':
-            ips = w_ips + h_ips
+            ips = h_ips + w_ips
             ip_list = list({ip['address']: ip for ip in ips}.values())
         elif self.want.action == 'exclude':
             unique_ips = {ip['address']: ip for ip in h_ips}
@@ -214,6 +214,14 @@ class Difference(object):
 
         config['waf_service']['policy']['high_risk_attack_mitigation']['ip_enforcement']['ips'] = ip_list
         return config
+
+    @property
+    def subscription_id(self):
+        return self.have.subscription_id
+
+    @property
+    def ip_enforcement(self):
+        return self.have.ip_enforcement
 
 
 class ModuleManager(object):
@@ -305,7 +313,6 @@ class ArgumentSpec(object):
             ),
             'action': dict(
                 default='block',
-                choices=['block', 'allow']
             ),
             'log': dict(
                 type='bool',
@@ -316,7 +323,7 @@ class ArgumentSpec(object):
         argument_spec = dict(
             subscription_id=dict(required=True),
             update_comment=dict(default='Update IP Enforcement Rules'),
-            ip_enforcement=dict(type='list', options=ip_enforcement_spec),
+            ip_enforcement=dict(type='list', elements='dict', options=ip_enforcement_spec),
             action=dict(
                 default='update',
                 choices=['update', 'append', 'exclude']

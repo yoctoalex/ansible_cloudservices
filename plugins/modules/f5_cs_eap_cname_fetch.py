@@ -27,9 +27,9 @@ author:
   - Alex Shemyakin
 '''
 
-# TODO Add examples
 EXAMPLES = '''
-
+description: 
+    - The examples can be found in /examples/f5_cs_eap_cname_fetch.yml
 '''
 
 RETURN = r'''

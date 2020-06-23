@@ -22,9 +22,9 @@ from unittest.mock import Mock
 from test.units.modules.utils import set_module_args
 
 try:
-    from library.modules.eap_cname_fetch import ModuleParameters
-    from library.modules.eap_cname_fetch import ModuleManager
-    from library.modules.eap_cname_fetch import ArgumentSpec
+    from library.modules.f5_cs_eap_cname_fetch import ModuleParameters
+    from library.modules.f5_cs_eap_cname_fetch import ModuleManager
+    from library.modules.f5_cs_eap_cname_fetch import ArgumentSpec
     from library.module_utils.cloudservices import HttpRestApi
     from library.module_utils.cloudservices import HttpConnection
 except ImportError:
@@ -59,10 +59,8 @@ def load_fixture(name):
 
 class TestParameters(unittest.TestCase):
     def test_module_parameters(self):
-        assert True is True
-
         args = dict(
-            subscription_id='x-xxxxxx',
+            subscription_id='s-xxxxxxxxxx',
             f5_cloudservices=dict(
                 user='user',
                 password='password',
@@ -71,7 +69,7 @@ class TestParameters(unittest.TestCase):
 
         p = ModuleParameters(params=args)
 
-        assert p.subscription_id == 'x-xxxxxx'
+        assert p.subscription_id == 's-xxxxxxxxxx'
         assert p.f5_cloudservices['user'] == 'user'
         assert p.f5_cloudservices['password'] == 'password'
 
@@ -82,7 +80,7 @@ class TestManager(unittest.TestCase):
 
     def test_cname_fetch(self, *args):
         set_module_args(dict(
-            subscription_id='x-xxxxxx',
+            subscription_id='s-xxxxxxxxxx',
             f5_cloudservices=dict(
                 user='user',
                 password='password',
