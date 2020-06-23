@@ -19,7 +19,7 @@ Installing the Build
     git clone git@bitbucket.org:yoctopeople/ansible-galaxy.git
     cd ./ansible-galaxy
     ansible-galaxy collection build --force
-    ansible-galaxy collection install f5devcentral-cloudservices-1.0.0.tar.gz -p ./ollections/
+    ansible-galaxy collection install f5devcentral-cloudservices-1.0.0.tar.gz -p ./collections/
 
     # CASE 2
     # To install from the Ansible Galaxy
