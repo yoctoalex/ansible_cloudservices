@@ -256,6 +256,8 @@ class ModuleManager(object):
         self.want = ModuleParameters(params=self.module.params, client=self.client)
         self.have = ApiParameters(client=self.client)
         self.changes = UsableChanges()
+        if self.want.account_id:
+            self.client.account_id = self.want.account_id
 
     def _update_changed_options(self):
         diff = Difference(self.want, self.have)
